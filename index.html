@@ -200,7 +200,7 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
         <button class="btn primary" id="btnRun">Executar</button>
         <button class="btn" id="btnReset">Restaurar código inicial</button>
         <label class="toggle" id="ghostWrap"><input type="checkbox" id="ghost" checked> Mostrar alvo</label>
-        <label class="speed" for="speed">Velocidade <input type="range" id="speed" min="1" max="10" value="6"></label>
+        <label class="speed" for="speed">Velocidade <input type="range" id="speed" min="1" max="10" value="4"></label>
       </div>
       <div class="status" id="status" role="status" aria-live="polite">Pronto.</div>
       <div class="publish" id="shareBox">
@@ -405,7 +405,7 @@ function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a
 function run(src,seed){
   const prog=parse(src);
   const st={x:0,y:0,h:0,pen:true,c:INK,w:2};
-  const segs=[];let steps=0;const conts=[];
+  const segs=[],ops=[];let steps=0;const conts=[];
   const rng=mulberry(seed??(Math.random()*1e9|0));
   const MAXSTEPS=400000,MAXSEG=80000,MAXDEPTH=400;
   function ev(e,sc){
@@ -425,7 +425,7 @@ function run(src,seed){
   function move(d){
     const r=st.h*Math.PI/180,nx=st.x+Math.sin(r)*d,ny=st.y+Math.cos(r)*d;
     if(segs.length>=MAXSEG)throw new LogoError('O desenho passou de 80 mil traços. Reduza as repetições.',null);
-    segs.push({x1:st.x,y1:st.y,x2:nx,y2:ny,pen:st.pen,c:st.c,w:st.w,h:st.h});
+    const g={x1:st.x,y1:st.y,x2:nx,y2:ny,pen:st.pen,c:st.c,w:st.w,h:st.h};segs.push(g);ops.push({t:'m',d,...g});
     st.x=nx;st.y=ny;
   }
   function exec(list,sc,depth){
@@ -434,13 +434,12 @@ function run(src,seed){
       switch(s.k){
         case 'pf':move(ev(s.args[0],sc));break;
         case 'pt':move(-ev(s.args[0],sc));break;
-        case 'gd':st.h=(st.h+ev(s.args[0],sc))%360;break;
-        case 'ge':st.h=(st.h-ev(s.args[0],sc))%360;break;
+        case 'gd':case 'ge':{const a=ev(s.args[0],sc)*(s.k==='gd'?1:-1);if(a)ops.push({t:'r',x:st.x,y:st.y,h0:st.h,a});st.h=(st.h+a)%360;break}
         case 'un':st.pen=false;break;
         case 'ul':st.pen=true;break;
         case 'cor':st.c=s.s||`hsl(${((ev(s.args[0],sc)%360)+360)%360} 72% 46%)`;break;
         case 'esp':st.w=Math.min(40,Math.max(.5,ev(s.args[0],sc)));break;
-        case 'centro':st.x=0;st.y=0;st.h=0;break;
+        case 'centro':st.x=0;st.y=0;st.h=0;ops.push({t:'j'});break;
         case 'repita':{
           const n=Math.round(ev(s.n,sc));
           if(n>100000)throw new LogoError(`repita ${n} é demais para a tartaruga (máximo 100000).`,s.line);
@@ -459,7 +458,7 @@ function run(src,seed){
     }
   }
   try{exec(prog.main,{},0)}catch(e){if(e!==STOP)throw e}
-  return{segs,turtle:{x:st.x,y:st.y,h:st.h}};
+  return{segs,ops,turtle:{x:st.x,y:st.y,h:st.h}};
 }
 
 /* ============ Desafios ============ */
@@ -536,7 +535,6 @@ const $=id=>document.getElementById(id);
 const ta=$('codigo'),gutter=$('gutter'),statusEl=$('status');
 const cvB=$('cvBase'),cvT=$('cvTurtle'),stage=$('stage');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-if(reduce)$('speed').value=10;
 
 function draftKey(){return view==='estudio'?'studio':'c'+chIdx}
 function starter(){return view==='estudio'?STUDIO_START:CH[chIdx].inicio}
@@ -548,7 +546,7 @@ function updateGutter(){
   for(let i=1;i<=n;i++)h+=(i===errLine?'<span class="err">'+i+'</span>':i)+'\n';
   gutter.innerHTML=h;gutter.scrollTop=ta.scrollTop;
 }
-ta.addEventListener('input',()=>{drafts[draftKey()]=ta.value;store.set('drafts',drafts);errLine=null;updateGutter()});
+ta.addEventListener('input',()=>{if(A)setRunLabel(false);drafts[draftKey()]=ta.value;store.set('drafts',drafts);errLine=null;updateGutter()});
 ta.addEventListener('scroll',()=>{gutter.scrollTop=ta.scrollTop});
 ta.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();execute();return}
@@ -556,8 +554,8 @@ ta.addEventListener('keydown',e=>{
 });
 
 /* ============ Desenho ============ */
-const WORLD=600,SPEEDS=[1,1,2,4,8,16,40,100,300,1e9,1e9];
-let size=0,dpr=1,cur=null,drawn=0,anim=null;
+const WORLD=600,VEL=[0,40,80,150,300,600,1200,2500,6000,20000,Infinity]; // passos por segundo
+let size=0,dpr=1,cur=null,anim=null,A=null;
 const ctxB=cvB.getContext('2d'),ctxT=cvT.getContext('2d');
 function toPx(x,y,sz){const s=sz/WORLD;return[sz/2+x*s,sz/2-y*s]}
 function paper(ctx,sz){
@@ -583,7 +581,10 @@ function showGhost(){return view==='desafios'&&$('ghost').checked}
 function redrawBase(){
   paper(ctxB,size);
   if(showGhost()){const t=CH[chIdx].alvoSegs;strokeSegs(ctxB,size,t,0,t.length,true)}
-  if(cur)strokeSegs(ctxB,size,cur.segs,0,drawn,false);
+  if(!cur)return;
+  if(!A){strokeSegs(ctxB,size,cur.segs,0,cur.segs.length,false);return}
+  for(let k=0;k<A.i;k++)drawPiece(cur.ops[k],0,1);
+  if(A.i<cur.ops.length)drawPiece(cur.ops[A.i],0,A.f);
 }
 /* Tartaruga vista de cima: cabeça aponta para a direção em que ela anda */
 function paintTurtle(c,k){
@@ -615,23 +616,61 @@ function drawTurtle(t){
   paintTurtle(ctxT,Math.max(s*1.8,dpr*1.3));ctxT.restore();
   $('coords').textContent=`x ${Math.round(t.x)} · y ${Math.round(t.y)} · ${Math.round(((t.h%360)+360)%360)}°`;
 }
-function turtleAt(i){if(!cur||i<=0)return{x:0,y:0,h:0};if(i>=cur.segs.length)return cur.turtle;const g=cur.segs[i-1];return{x:g.x2,y:g.y2,h:g.h}}
 function resize(){
   const r=stage.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);
   size=Math.round(r.width*dpr);[cvB,cvT].forEach(c=>{c.width=size;c.height=size});
-  redrawBase();drawTurtle(turtleAt(drawn));
+  redrawBase();drawTurtle(turtleState());
 }
 new ResizeObserver(resize).observe(stage);
 
+function opDur(op,v){return op.t==='m'?Math.abs(op.d)/v:op.t==='r'?Math.abs(op.a)/(v*3):0}
+function drawPiece(op,f0,f1){
+  if(op.t!=='m'||!op.pen||f1<=f0)return;
+  const s=size/WORLD,dx=op.x2-op.x1,dy=op.y2-op.y1;
+  const[a,b]=toPx(op.x1+dx*f0,op.y1+dy*f0,size),[c,d]=toPx(op.x1+dx*f1,op.y1+dy*f1,size);
+  ctxB.lineCap='round';ctxB.strokeStyle=op.c;ctxB.lineWidth=Math.max(op.w*s,1);
+  ctxB.beginPath();ctxB.moveTo(a,b);ctxB.lineTo(c,d);ctxB.stroke();
+}
+function turtleState(){
+  if(!cur)return{x:0,y:0,h:0};
+  if(!A||A.i>=cur.ops.length)return cur.turtle;
+  for(let k=A.i;k>=0;k--){
+    const op=cur.ops[k],f=k===A.i?A.f:1;
+    if(op.t==='m')return{x:op.x1+(op.x2-op.x1)*f,y:op.y1+(op.y2-op.y1)*f,h:op.h};
+    if(op.t==='r')return{x:op.x,y:op.y,h:op.h0+op.a*f};
+    if(op.t==='j'&&k<A.i)return{x:0,y:0,h:0};
+  }
+  return{x:0,y:0,h:0};
+}
+let lastSrc='';
+function setRunLabel(running){$('btnRun').textContent=running?'Concluir desenho':'Executar'}
+function finishAnim(){
+  if(!A)return;cancelAnimationFrame(anim);anim=null;
+  const ops=cur.ops;drawPiece(ops[A.i]||{},A.f,1);for(let k=A.i+1;k<ops.length;k++)drawPiece(ops[k],0,1);
+  const done=A.onDone;A=null;setRunLabel(false);drawTurtle(cur.turtle);done&&done();
+}
 function animate(onDone){
-  cancelAnimationFrame(anim);drawn=0;redrawBase();
-  const segs=cur.segs;
-  const frame=()=>{
-    const k=SPEEDS[+$('speed').value];const end=Math.min(segs.length,drawn+k);
-    strokeSegs(ctxB,size,segs,drawn,end,false);drawn=end;drawTurtle(turtleAt(drawn));
-    if(drawn<segs.length)anim=requestAnimationFrame(frame);else{anim=null;onDone&&onDone()}
+  cancelAnimationFrame(anim);
+  const t0=performance.now();A={i:0,f:0,start:t0,last:t0,onDone};
+  redrawBase();drawTurtle(turtleState());
+  if(!cur.ops.length||VEL[+$('speed').value]===Infinity){finishAnim();return}
+  setRunLabel(true);
+  const frame=now=>{
+    if(!A)return;
+    const dt=Math.min(.05,Math.max(0,(now-A.last)/1000));A.last=now;
+    const el=(now-A.start)/1000,warp=1+Math.max(0,el-6)**2*.6; // desenhos longos aceleram depois de 6 s
+    const v=VEL[+$('speed').value]*warp;
+    if(v===Infinity){finishAnim();return}
+    const ops=cur.ops;let budget=dt,guard=0;
+    while(A.i<ops.length&&guard++<200000){
+      const op=ops[A.i],dur=opDur(op,v),rem=dur*(1-A.f);
+      if(rem<=budget){budget-=rem;drawPiece(op,A.f,1);A.i++;A.f=0}
+      else{const nf=A.f+budget/dur;drawPiece(op,A.f,nf);A.f=nf;break}
+    }
+    drawTurtle(turtleState());
+    if(A.i<ops.length)anim=requestAnimationFrame(frame);else finishAnim();
   };
-  frame();
+  anim=requestAnimationFrame(frame);
 }
 
 /* ============ Conferência do desafio ============ */
@@ -653,10 +692,11 @@ function setStatus(html,kind){statusEl.className='status'+(kind?' '+kind:'');sta
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function execute(){
   errLine=null;
+  lastSrc=ta.value;
   try{cur=run(ta.value)}
   catch(e){
     if(!(e instanceof LogoError))throw e;
-    cancelAnimationFrame(anim);
+    cancelAnimationFrame(anim);if(A){A=null;setRunLabel(false);redrawBase();drawTurtle(turtleState())}
     errLine=e.line;updateGutter();
     setStatus(`<strong>${e.line?'Linha '+e.line+': ':''}</strong>${esc(e.message)}`,'error');return;
   }
@@ -713,7 +753,7 @@ function setView(v){
   if(v==='desafios'||v==='estudio')loadBench();
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>setView(t.dataset.view));
-$('btnRun').onclick=execute;
+$('btnRun').onclick=()=>A&&ta.value===lastSrc?finishAnim():execute();
 $('btnReset').onclick=()=>{ta.value=starter();drafts[draftKey()]=ta.value;store.set('drafts',drafts);execute()};
 $('ghost').onchange=()=>{redrawBase()};
 
