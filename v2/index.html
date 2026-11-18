@@ -432,17 +432,17 @@ code,.mono{font-family:var(--f-mono);font-size:.9em}
   body.app .bench{flex:1;min-height:0;margin-top:12px;align-items:stretch;
     grid-template-columns:minmax(300px,1fr) auto minmax(280px,.78fr);grid-template-rows:minmax(0,1fr);grid-template-areas:"code stage help"}
   body.app .pane{min-height:0}
-  body.app .pane-stage{position:static;grid-row:auto;width:min(calc(100dvh - 205px),44vw,760px)}
+  body.app .pane-stage{position:static;grid-row:auto;width:min(calc(100dvh - 205px),calc(100vw - 680px),760px)}
   body.app .pane-code{overflow:hidden}
   body.app .pane-code>*{flex-shrink:0}
   body.app .pane-code .editor{flex:1 1 auto;flex-shrink:1;min-height:150px;height:auto}
   body.app .pane-help{overflow:auto;padding-right:2px}
   body.app .mission{max-height:34vh;overflow:auto;padding:12px 16px;gap:6px}
   body.app .mission h2{font-size:1.2rem}
-  body.app .steps{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
-  body.app .step{flex:none}
-  body.app .extras{flex-direction:row;align-items:flex-start}
-  body.app .extras>details{flex:1;min-width:0}
+  body.app .steps{gap:4px}
+  body.app .step{padding:4px 8px;gap:4px}
+  body.app .step:not([aria-current="true"]) .st-title{display:none}
+  body.app .pane-help .extras{flex-direction:column}
 }
 @media (max-width:899px),(max-height:599px){.editor{height:280px}}
 @media (max-width:520px){.tab{padding:6px 10px}.top{border-radius:14px}}
@@ -655,17 +655,17 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
   </header>
 
   <section id="view-bench" class="bench">
-    <div class="pane pane-code">
+    <div class="pane pane-code" id="paneCode">
       <div id="challengeNav" class="steps" aria-label="Desafios"></div>
       <article class="mission card" id="mission"></article>
       <div class="editor"><textarea id="codigo" aria-label="Programa"></textarea></div>
       <p class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> executa · <kbd>Ctrl</kbd> + <kbd>Espaço</kbd> sugere comandos · <code>;</code> comenta</p>
-      <div class="extras">
+      <div class="extras" id="extras">
         <details class="panel card" id="wordsBox">
           <summary>Minhas palavras <span class="count" id="wordsCount">0</span></summary>
           <p class="note">Procedimentos que você criou e quer reaproveitar em outros desafios e no Estúdio.</p>
           <div class="words" id="wordsList"></div>
-          <div class="row"><button class="btn small" id="wordsSave">Guardar procedimentos deste código</button></div>
+          <div class="row"><button class="btn small" id="wordsSave" title="Guarda os procedimentos (aprenda … fim) que estão no código agora">Guardar procedimentos</button></div>
           <p class="note" id="wordsNote" aria-live="polite"></p>
         </details>
         <details class="panel card" id="shareBox">
@@ -1621,7 +1621,7 @@ function renderNav(){
   CH.forEach((c,i)=>{
     const b=document.createElement('button');b.className='step'+(done.has(i)?' done':'');
     b.setAttribute('aria-current',i===chIdx?'true':'false');
-    b.innerHTML=`<b>${i+1}</b>${esc(c.titulo)}<span class="ok" aria-label="${done.has(i)?'concluído':'pendente'}"></span>`;
+    b.title=c.titulo;b.innerHTML=`<b>${i+1}</b><span class="st-title">${esc(c.titulo)}</span><span class="ok" aria-label="${done.has(i)?'concluído':'pendente'}"></span>`;
     b.onclick=()=>{chIdx=i;store.set('ch',i);loadBench()};nav.appendChild(b);
   });
 }
@@ -1861,7 +1861,7 @@ function renderWords(){
   const names=Object.keys(palavras).sort();
   $('wordsCount').textContent=names.length;
   const box=$('wordsList');box.innerHTML='';
-  if(!names.length){box.innerHTML='<p class="muted small">Nenhuma palavra ainda. Escreva um <code>aprenda … fim</code>, execute e clique em “Guardar procedimentos deste código”.</p>';return}
+  if(!names.length){box.innerHTML='<p class="muted small">Nenhuma palavra ainda. Escreva um <code>aprenda … fim</code>, execute e clique em “Guardar procedimentos”.</p>';return}
   for(const n of names){
     const w=palavras[n],row=document.createElement('div');row.className='word';
     row.innerHTML=`<code></code><button class="btn tiny">Inserir</button><button class="btn tiny ghost" aria-label="Remover">Remover</button>`;
@@ -1920,7 +1920,9 @@ function setHelpOpen(open){const h=$('paneHelp');h.classList.toggle('collapsed',
 $('helpToggle').onclick=()=>setHelpOpen($('paneHelp').classList.contains('collapsed'));
 function placeStatus(){
   const st=$('status');
-  if(mqWide.matches){$('paneHelp').prepend(st);setHelpOpen(true)}else $('paneStage').appendChild(st);
+  const ex=$('extras');
+  if(mqWide.matches){$('paneHelp').prepend(st);$('paneHelp').appendChild(ex);setHelpOpen(true);$('wordsBox').open=true;$('shareBox').open=true}
+  else{$('paneStage').appendChild(st);$('paneCode').appendChild(ex)}
   resize();
 }
 mqWide.addEventListener('change',placeStatus);
