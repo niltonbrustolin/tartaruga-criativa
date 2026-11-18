@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Tartaruga Criativa: lógica de programação desenhando, no espírito do Logo de Seymour Papert.">
+<meta name="description" content="Tartaruga Criativa e outros personagens: lógica de programação desenhando, no espírito do Logo de Seymour Papert.">
 <title>Tartaruga Criativa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -397,9 +397,54 @@ code,.mono{font-family:var(--f-mono);font-size:.9em}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 
-/* bancada */
-.bench{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:20px;margin-top:18px;align-items:start}
-@media (max-width:960px){.bench{grid-template-columns:minmax(0,1fr)}.editor{height:260px}}
+/* bancada: código | palco | ajuda. Em telas grandes vira um aplicativo de tela inteira, sem rolagem da página */
+.bench{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"code" "stage" "help";gap:16px;margin-top:16px}
+.pane{display:flex;flex-direction:column;gap:12px;min-width:0}
+.pane-code{grid-area:code}.pane-stage{grid-area:stage}.pane-help{grid-area:help}
+.extras{display:flex;flex-direction:column;gap:10px}
+.logo{width:42px;height:42px;border-radius:12px;background:#161A28;display:grid;place-items:center;flex:none}
+.logo canvas{width:34px;height:34px}
+@media (min-width:900px){
+  .bench{grid-template-columns:minmax(0,1fr) min(52vw,calc(100vh - 150px),640px);grid-template-areas:"code stage";align-items:start}
+  .pane-stage{position:sticky;top:12px}
+}
+/* Fora do modo de tela inteira, o assistente vira um balão flutuante no canto, sempre visível */
+#helpToggle{display:none}
+@media (max-width:1199px),(max-height:599px){
+  .pane-help{position:fixed;right:16px;bottom:16px;width:min(380px,calc(100vw - 32px));max-height:min(62vh,540px);overflow:auto;z-index:30;padding:2px}
+  .pane-help .bubble{box-shadow:0 12px 36px rgba(10,12,20,.22)}
+  .pane-help .bubble::before{display:none}
+  .pane-help .avatar{box-shadow:0 8px 24px rgba(10,12,20,.2)}
+  #helpToggle{display:inline-flex}
+  .pane-help.collapsed .as-list,.pane-help.collapsed .diary-ask,.pane-help.collapsed .as-count,.pane-help.collapsed #btnNote,.pane-help.collapsed #btnHint{display:none}
+  .wrap{padding-bottom:140px}
+}
+@media (min-width:900px) and (max-width:1199px){
+  .pane-help{left:16px;right:auto;width:min(420px,calc(100vw - min(52vw,calc(100vh - 150px),640px) - 64px))}
+}
+.newdot{width:9px;height:9px;border-radius:50%;background:var(--bad);display:none}
+.pane-help.collapsed.has-new .newdot{display:inline-block;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.5);opacity:.6}}
+@media (min-width:1200px) and (min-height:600px){
+  body.app{overflow:hidden}
+  body.app .wrap{height:100vh;height:100dvh;display:flex;flex-direction:column;padding-block:12px}
+  body.app .foot{display:none}
+  body.app .bench{flex:1;min-height:0;margin-top:12px;align-items:stretch;
+    grid-template-columns:minmax(300px,1fr) auto minmax(280px,.78fr);grid-template-rows:minmax(0,1fr);grid-template-areas:"code stage help"}
+  body.app .pane{min-height:0}
+  body.app .pane-stage{position:static;grid-row:auto;width:min(calc(100dvh - 205px),44vw,760px)}
+  body.app .pane-code{overflow:hidden}
+  body.app .pane-code>*{flex-shrink:0}
+  body.app .pane-code .editor{flex:1 1 auto;flex-shrink:1;min-height:150px;height:auto}
+  body.app .pane-help{overflow:auto;padding-right:2px}
+  body.app .mission{max-height:34vh;overflow:auto;padding:12px 16px;gap:6px}
+  body.app .mission h2{font-size:1.2rem}
+  body.app .steps{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
+  body.app .step{flex:none}
+  body.app .extras{flex-direction:row;align-items:flex-start}
+  body.app .extras>details{flex:1;min-width:0}
+}
+@media (max-width:899px),(max-height:599px){.editor{height:280px}}
 @media (max-width:520px){.tab{padding:6px 10px}.top{border-radius:14px}}
 .col{display:flex;flex-direction:column;gap:14px;min-width:0}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
@@ -423,7 +468,7 @@ code,.mono{font-family:var(--f-mono);font-size:.9em}
 .backlink{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font-weight:500;align-self:flex-start;font-size:.88rem}
 
 /* editor */
-.editor{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--code-bg);height:360px;box-shadow:var(--shadow)}
+.editor{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--code-bg);height:320px;box-shadow:var(--shadow)}
 .CodeMirror{height:100%;background:var(--code-bg);color:var(--ink);font-family:var(--f-mono);font-size:14px;line-height:1.65}
 .CodeMirror-gutters{background:var(--code-bg);border-right:1px solid var(--line)}
 .CodeMirror-linenumber{color:var(--gutter);padding:0 8px 0 10px}
@@ -449,7 +494,7 @@ kbd{font-family:var(--f-mono);font-size:.78em;border:1px solid var(--line);borde
 
 /* palavras + compartilhar */
 .panel{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
-.panel summary{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:1rem;list-style:none;display:flex;align-items:center;gap:8px}
+.panel summary{white-space:nowrap;cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:1rem;list-style:none;display:flex;align-items:center;gap:8px}
 .panel summary::-webkit-details-marker{display:none}
 .panel summary::before{content:'▸';color:var(--muted);transition:transform .15s}
 .panel[open] summary::before{transform:rotate(90deg)}
@@ -462,7 +507,11 @@ kbd{font-family:var(--f-mono);font-size:.78em;border:1px solid var(--line);borde
 .share input{flex:1;min-width:160px;border:1px solid var(--line);background:var(--code-bg);border-radius:8px;padding:7px 10px}
 
 /* palco */
-.stage-wrap{display:flex;flex-direction:column;gap:10px}
+.stage-wrap{display:flex;flex-direction:column;gap:10px;container-type:inline-size}
+@container (max-width:640px){.toolbar .lbl{display:none}.toolbar .btn{padding:8px 10px}}
+.stage-row{justify-content:space-between}
+.mission details summary{cursor:pointer;color:var(--accent);font-size:.86rem;font-weight:500}
+.mission details[open] summary{margin-bottom:6px}
 .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
 .toolbar .grow{flex:1}
 .btn.icon{padding:8px 10px}
@@ -477,7 +526,7 @@ kbd{font-family:var(--f-mono);font-size:.78em;border:1px solid var(--line);borde
 #coords{right:10px;bottom:10px}
 #turnTotal{left:10px;bottom:10px;color:#2346D8;border-color:#C9D3F5}
 #povSay{left:50%;top:12px;transform:translateX(-50%);font-family:var(--f-body);font-size:.86rem;color:#161A28;background:#FFF3C4;border-color:#F0DB8A;white-space:nowrap}
-.stage.pov::after{content:'visão da tartaruga';position:absolute;right:10px;top:10px;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:#2346D8;background:rgba(251,251,247,.9);padding:2px 8px;border-radius:999px;border:1px solid #C9D3F5}
+#povTag{right:10px;top:10px;font-family:var(--f-body);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:#2346D8;border-color:#C9D3F5}
 .stage-wrap:fullscreen{background:var(--bg);padding:16px;justify-content:center;align-items:center}
 .stage-wrap:fullscreen .stage{width:min(88vh,92vw);height:auto}
 .stage-wrap:fullscreen .toolbar{width:min(88vh,92vw)}
@@ -510,10 +559,11 @@ kbd{font-family:var(--f-mono);font-size:.78em;border:1px solid var(--line);borde
 .bubble::before{content:'';position:absolute;left:-7px;top:18px;width:12px;height:12px;background:var(--panel);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}
 .as-head{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap}
 .as-head h3{font-size:.98rem;margin-right:auto}
+.as-head .newdot{order:0}
 .as-count{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums;flex-basis:100%;order:3}
 .as-list{display:flex;flex-direction:column;gap:10px}
-.msg{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;font-size:.9rem}
-.msg>div{min-width:0}
+.msg{display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-size:.9rem}
+.msg>div{min-width:0;max-width:100%}
 .msg .tag{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:2px 7px;border-radius:5px;margin-top:2px;white-space:nowrap;min-width:5.6em;text-align:center}
 .msg.erro .tag{background:var(--bad-soft);color:var(--bad)}
 .msg.aviso .tag{background:var(--warn-soft);color:var(--warn)}
@@ -590,21 +640,9 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true">
-        <rect x="1" y="1" width="40" height="40" rx="11" fill="#161A28"/>
-        <g stroke="#1E3A1B" stroke-width="1" stroke-linejoin="round">
-          <ellipse cx="12.5" cy="16" rx="3.6" ry="2.2" transform="rotate(-32 12.5 16)" fill="#7DBE5F"/>
-          <ellipse cx="29.5" cy="16" rx="3.6" ry="2.2" transform="rotate(32 29.5 16)" fill="#7DBE5F"/>
-          <ellipse cx="13" cy="29" rx="3.3" ry="2.1" transform="rotate(32 13 29)" fill="#7DBE5F"/>
-          <ellipse cx="29" cy="29" rx="3.3" ry="2.1" transform="rotate(-32 29 29)" fill="#7DBE5F"/>
-          <path d="M19.4 31.5 L21 36 L22.6 31.5 Z" fill="#7DBE5F"/>
-          <ellipse cx="21" cy="10" rx="3.6" ry="4.3" fill="#7DBE5F"/>
-          <ellipse cx="21" cy="22.5" rx="8.5" ry="9.8" fill="#3E7B38"/>
-          <path d="M21 18 L24.8 20.2 L24.8 24.8 L21 27 L17.2 24.8 L17.2 20.2 Z" fill="#9BCB6F"/>
-        </g>
-      </svg>
+      <span class="logo"><canvas id="logoCv" aria-hidden="true"></canvas></span>
       <div>
-        <h1>Tartaruga Criativa<span class="badge">versão 2</span></h1>
+        <h1 class="tt">{T} {Criativa}<span class="badge">versão 2</span></h1>
         <p>Lógica de programação desenhando, no espírito do Logo</p>
       </div>
     </div>
@@ -617,35 +655,38 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
   </header>
 
   <section id="view-bench" class="bench">
-    <div class="col">
+    <div class="pane pane-code">
       <div id="challengeNav" class="steps" aria-label="Desafios"></div>
       <article class="mission card" id="mission"></article>
-      <div class="editor"><textarea id="codigo" aria-label="Programa da tartaruga"></textarea></div>
-      <p class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> executa · <kbd>Ctrl</kbd> + <kbd>Espaço</kbd> sugere comandos · comentários começam com <code>;</code></p>
-      <details class="panel card" id="wordsBox">
-        <summary>Minhas palavras <span class="count" id="wordsCount">0</span></summary>
-        <p class="note">Procedimentos que você criou e quer reaproveitar em outros desafios e no Estúdio.</p>
-        <div class="words" id="wordsList"></div>
-        <div class="row"><button class="btn small" id="wordsSave">Guardar procedimentos deste código</button></div>
-        <p class="note" id="wordsNote" aria-live="polite"></p>
-      </details>
-      <div class="panel card">
-        <div class="share">
-          <button class="btn small" id="btnShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>Copiar link desta obra</button>
-          <input id="shareOut" readonly aria-label="Link da obra" placeholder="O link aparece aqui" hidden>
-        </div>
-        <p class="note" id="shareNote">O link guarda o seu código. Quem abrir vê a obra no Estúdio e pode fazer um remix.</p>
+      <div class="editor"><textarea id="codigo" aria-label="Programa"></textarea></div>
+      <p class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> executa · <kbd>Ctrl</kbd> + <kbd>Espaço</kbd> sugere comandos · <code>;</code> comenta</p>
+      <div class="extras">
+        <details class="panel card" id="wordsBox">
+          <summary>Minhas palavras <span class="count" id="wordsCount">0</span></summary>
+          <p class="note">Procedimentos que você criou e quer reaproveitar em outros desafios e no Estúdio.</p>
+          <div class="words" id="wordsList"></div>
+          <div class="row"><button class="btn small" id="wordsSave">Guardar procedimentos deste código</button></div>
+          <p class="note" id="wordsNote" aria-live="polite"></p>
+        </details>
+        <details class="panel card" id="shareBox">
+          <summary>Compartilhar</summary>
+          <div class="share">
+            <button class="btn small" id="btnShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>Copiar link desta obra</button>
+            <input id="shareOut" readonly aria-label="Link da obra" placeholder="O link aparece aqui" hidden>
+          </div>
+          <p class="note" id="shareNote">O link guarda o seu código. Quem abrir vê a obra no Estúdio e pode fazer um remix.</p>
+        </details>
       </div>
     </div>
 
-    <div class="col">
+    <div class="pane pane-stage" id="paneStage">
       <div class="stage-wrap" id="stageWrap">
-        <div class="toolbar" role="toolbar" aria-label="Controles da tartaruga">
+        <div class="toolbar" role="toolbar" aria-label="Controles">
           <button class="btn primary" id="btnRun"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span id="btnRunLbl">Executar</span></button>
-          <button class="btn" id="btnStep" title="Executa um movimento de cada vez"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 5v14l10-7z"/><rect x="16" y="5" width="3" height="14" rx="1"/></svg>Passo</button>
-          <button class="btn" id="btnPause" disabled><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span id="btnPauseLbl">Pausar</span></button>
+          <button class="btn" id="btnStep" title="Executa um movimento de cada vez"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 5v14l10-7z"/><rect x="16" y="5" width="3" height="14" rx="1"/></svg><span class="lbl">Passo</span></button>
+          <button class="btn" id="btnPause" disabled title="Pausar ou continuar"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="lbl" id="btnPauseLbl">Pausar</span></button>
           <span class="grow" aria-hidden="true"></span>
-          <button class="btn" id="btnPov" aria-pressed="false" title="A câmera acompanha a tartaruga: a frente dela é sempre para cima"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Seja a tartaruga</button>
+          <button class="btn tt" id="btnPov" aria-pressed="false" title="A câmera acompanha o personagem: a frente é sempre para cima"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl">Seja {a} {t}</span></button>
           <div class="charpick">
             <button class="btn icon" id="btnChar" aria-expanded="false" aria-controls="charPop" title="Escolher personagem"><canvas id="charBtnCv" aria-hidden="true"></canvas><span class="vh">Personagem</span></button>
             <div class="char-pop" id="charPop" hidden><h3>Quem vai desenhar?</h3><div class="char-grid" id="charList"></div></div>
@@ -656,23 +697,28 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
           <canvas id="cvBase"></canvas>
           <canvas id="cvTurtle"></canvas>
           <div class="pill" id="povSay" hidden></div>
+          <div class="pill tt" id="povTag" hidden>visão {da} {t}</div>
           <div class="pill" id="turnTotal">giro total 0°</div>
           <div class="pill" id="coords">x 0 · y 0 · direção 0°</div>
         </div>
       </div>
-      <div class="row">
+      <div class="row stage-row">
         <button class="btn small ghost" id="btnReset">Restaurar código inicial</button>
         <label class="toggle" id="ghostWrap"><input type="checkbox" id="ghost" checked> Mostrar alvo</label>
         <label class="speed" for="speed">Velocidade <input type="range" id="speed" min="1" max="10" value="4"></label>
       </div>
+    </div>
+
+    <div class="pane pane-help" id="paneHelp">
       <div class="status" id="status" role="status" aria-live="polite">Pronto.</div>
       <section class="assistant" aria-label="Assistente">
         <div class="avatar"><canvas id="asAvatar" aria-hidden="true"></canvas></div>
         <div class="bubble card">
           <div class="as-head">
-            <h3>Assistente</h3>
+            <h3>Assistente</h3><span class="newdot" aria-hidden="true"></span>
             <button class="btn small" id="btnHint">Pedir dica</button>
-            <button class="btn small ghost" id="btnNote">Anotar no diário</button>
+            <button class="btn small ghost" id="btnNote" title="Anotar no diário de bordo">Anotar</button>
+            <button class="btn small ghost" id="helpToggle" aria-expanded="true" aria-label="Recolher o assistente" title="Recolher ou abrir">▾</button>
             <span class="as-count" id="asCount"></span>
           </div>
           <div class="as-list" id="asList" aria-live="polite"></div>
@@ -688,7 +734,7 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
 
   <section id="view-guia" hidden>
     <div class="page-head">
-      <h2>Guia da tartaruga</h2>
+      <h2 class="tt">Guia {da} {t}</h2>
       <p>Cada bloco apresenta um conceito com um exemplo e o desenho que ele produz. Depois vem um desafio curto: clique no botão, execute o exemplo, observe e modifique o código até chegar ao alvo.</p>
     </div>
     <div class="lessons" id="lessons"></div>
@@ -710,7 +756,7 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
             <tr><td>centro</td><td>Volta ao centro olhando para cima, sem desenhar</td></tr>
             <tr><td>pinte "cor [ … ]</td><td>Preenche a forma percorrida dentro do bloco</td></tr>
             <tr><td>carimbe "forma n</td><td>Deixa uma figura de tamanho n: estrela, coração, flor, casa, círculo, quadrado, triângulo</td></tr>
-            <tr><td>limpe</td><td>Apaga o papel (a tartaruga fica onde está)</td></tr>
+            <tr><td>limpe</td><td class="tt">Apaga o papel ({a} {t} fica onde está)</td></tr>
             <tr><td>espere n</td><td>Pausa por n segundos, para animações</td></tr>
             <tr><td>repita n [ … ]</td><td>Repete o bloco n vezes</td></tr>
             <tr><td>cont</td><td>Número da volta atual do repita (1, 2, 3…)</td></tr>
@@ -730,7 +776,7 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
         <p>Desenvolver os conceitos fundamentais de lógica de programação (sequência, repetição, parâmetros, decomposição, variação e recursão) por meio da criação de desenhos geométricos, em que o estudante formula hipóteses, executa, observa o resultado e depura o próprio algoritmo.</p>
         <h3>Ideias de Papert presentes na ferramenta</h3>
         <ul>
-          <li><b>Aprender com o corpo</b> (<i>body syntonic</i>): “Seja a tartaruga” prende a câmera nela, com a frente sempre para cima, e narra cada movimento.</li>
+          <li class="tt"><b>Aprender com o corpo</b> (<i>body syntonic</i>): “Seja {a} {t}” prende a câmera no personagem, com a frente sempre para cima, e narra cada movimento.</li>
           <li><b>Depurar é aprender</b>: o modo Passo executa um movimento de cada vez e destaca a linha do código que está rodando.</li>
           <li><b>Ideias poderosas</b>: o contador de giro total mostra que toda figura fechada soma 360° (ou múltiplos, como na estrela).</li>
           <li><b>Ensinar palavras ao computador</b>: “Minhas palavras” guarda os procedimentos de cada estudante para reaproveitar.</li>
@@ -748,7 +794,7 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
         <p>Funciona por regras, sem IA e sem login. Aponta erros de escrita em linguagem simples, compara o desenho com o alvo (espelhado, maior, menor, deslocado, incompleto) e libera 3 dicas por desafio, uma de cada vez. Depois de concluir ou de errar 3 vezes, convida a pessoa a escrever no diário.</p>
         <h3>Dinâmica sugerida (2 períodos)</h3>
         <ol>
-          <li><b>10 min</b> Brincar de tartaruga com o corpo; depois, ligar “Seja a tartaruga” na tela.</li>
+          <li class="tt"><b>10 min</b> Brincar de {t} com o corpo; depois, ligar “Seja {a} {t}rtaruga” na tela.</li>
           <li><b>40 min</b> Desafios em duplas, alternando piloto (teclado) e navegador.</li>
           <li><b>30 min</b> Estúdio livre com um tema aberto (ex.: “um padrão que represente você”).</li>
           <li><b>15 min</b> Remix: as duplas postam o link da obra; cada uma remixa a de outra.</li>
@@ -776,16 +822,16 @@ td:first-child{font-family:var(--f-mono);white-space:nowrap;color:var(--accent)}
     <div class="empty" id="diaryEmpty"><strong>O diário ainda está vazio</strong>Ao concluir um desafio, ou depois de algumas tentativas, o assistente faz uma pergunta curta. Você também pode clicar em “Anotar no diário” a qualquer momento.</div>
   </section>
 
-  <p class="foot">Tartaruga Criativa, versão 2 · <a href="#" id="onbAgain">Ver as boas-vindas</a> · <a href="../">Abrir a versão original</a></p>
+  <p class="foot"><span class="tt">{T} {Criativa}</span>, versão 2 · <a href="#" id="onbAgain">Ver as boas-vindas</a> · <a href="../">Abrir a versão original</a></p>
 </div>
 
 <div class="onb" id="onb" hidden role="dialog" aria-modal="true" aria-labelledby="onbTitle">
   <div class="onb-card">
     <span class="eyebrow">Bem-vindo</span>
-    <h2 id="onbTitle">Programe uma tartaruga que desenha</h2>
+    <h2 id="onbTitle" class="tt">Programe {uma} {t} que desenha</h2>
     <div class="onb-steps">
       <div class="onb-step"><span class="n">1</span><h3>Escreva comandos</h3><p><code>pf 100</code> anda, <code>gd 90</code> gira. O editor sugere os comandos enquanto você digita.</p></div>
-      <div class="onb-step"><span class="n">2</span><h3>Execute e observe</h3><p>A tartaruga percorre o caminho. Use <b>Passo</b> para ir devagar ou <b>Seja a tartaruga</b> para ver pelos olhos dela.</p></div>
+      <div class="onb-step"><span class="n">2</span><h3>Execute e observe</h3><p class="tt">{A} {t} percorre o caminho. Use <b>Passo</b> para ir devagar ou <b>Seja {a} {t}</b> para ver pelos olhos {dela}.</p></div>
       <div class="onb-step"><span class="n">3</span><h3>Erre à vontade</h3><p>O assistente explica o erro e dá dicas aos poucos. Anote suas descobertas no diário.</p></div>
     </div>
     <div class="row"><button class="btn primary" id="onbGo">Começar</button></div>
@@ -981,7 +1027,7 @@ function run(src,seed){
           break}
         case 'repita':{
           const n=Math.round(ev(s.n,sc));
-          if(n>100000)throw new LogoError(`repita ${n} é demais para a tartaruga (máximo 100000).`,s.line);
+          if(n>100000)throw new LogoError(`repita ${n} é demais para {a} {t} (máximo 100000).`,s.line);
           for(let i=1;i<=n;i++){conts.push(i);try{exec(s.body,sc,depth)}finally{conts.pop()}}
           break}
         case 'se':if(ev(s.c,sc))exec(s.body,sc,depth);break;
@@ -1016,7 +1062,7 @@ const CH=[
   inicio:'pf 150 gd 90\npf 150 gd 90\n; ...existe um jeito mais curto de terminar?\n'},
  {conceito:'Ângulos e padrões',titulo:'Estrela',
   missao:'Desenhe a estrela de 5 pontas com lados de 200.',
-  pense:'Com <code>gd 72</code> a tartaruga dá 1 volta completa (5 × 72 = 360) e desenha um pentágono. Quantas voltas ela precisa dar para desenhar a estrela? Observe o contador de giro total no canto do papel.',
+  pense:'Com <code>gd 72</code> {a} {t} dá 1 volta completa (5 × 72 = 360) e desenha um pentágono. Quantas voltas ela precisa dar para desenhar a estrela? Observe o contador de giro total no canto do papel.',
   alem:'Descubra a regra: que ângulo gera uma estrela de 7 pontas? E de 9?',
   alvo:'repita 5 [pf 200 gd 144]',
   inicio:'repita 5 [pf 200 gd 72]\n'},
@@ -1040,7 +1086,7 @@ const CH=[
   inicio:'repita 100 [pf 100 gd 91]\n'},
  {conceito:'Recursão',titulo:'Árvore',
   missao:'Complete o procedimento <code>galho</code> para que cada galho se divida em dois, como na árvore-alvo.',
-  pense:'Um procedimento recursivo chama a si mesmo com um problema menor. <code>se :t &lt; 8 [pare]</code> é a condição de parada: sem ela a tartaruga nunca terminaria.',
+  pense:'Um procedimento recursivo chama a si mesmo com um problema menor. <code>se :t &lt; 8 [pare]</code> é a condição de parada: sem ela {a} {t} nunca terminaria.',
   alem:'Mude os ângulos ou o fator 0.7, ou use <code>aleatorio</code> para que cada árvore da floresta seja diferente.',
   alvo:'aprenda galho :t\n se :t < 8 [pare]\n pf :t ge 25 galho :t * 0.7\n gd 50 galho :t * 0.7\n ge 25 pt :t\nfim\nun pt 180 ul\ngalho 100',
   inicio:'aprenda galho :t\n  se :t < 8 [pare]\n  pf :t\n  ge 25\n  galho :t * 0.7\n  gd 25\n  pt :t\nfim\n\nun pt 180 ul\ngalho 100\n'}
@@ -1069,15 +1115,15 @@ const DICAS_CH=[
   'A escada tem 4 degraus iguais. Repita o mesmo bloco de 4 instruções mais 3 vezes, ou use `repita 4 [ … ]`.',
   'Complete o espaço:|repita 4 [pf 40 gd 90 pf 40 ge __]'],
  ['Um quadrado tem 4 lados iguais e 4 giros iguais.',
-  'Quanto a tartaruga gira, no total, para voltar a olhar para cima? Divida esse total pelos 4 cantos.',
+  'Quanto {a} {t} gira, no total, para voltar a olhar para cima? Divida esse total pelos 4 cantos.',
   'Complete o espaço:|repita __ [pf 150 gd 90]'],
- ['Com 72° a tartaruga dá 1 volta e desenha um pentágono. Para fechar a estrela ela precisa dar 2 voltas completas.',
+ ['Com 72° {a} {t} dá 1 volta e desenha um pentágono. Para fechar a estrela ela precisa dar 2 voltas completas.',
   '2 voltas são 720°. Divida esse total pelos 5 giros.',
   'Complete o espaço:|repita 5 [pf 200 gd ___]   ; 720 / 5'],
  ['Troque o 4 por `:lados` e o 90 por uma conta. O procedimento passa a receber dois valores.',
   'O giro de um polígono é 360 dividido pelo número de lados: `360 / :lados`.',
   'Complete e chame três vezes:|aprenda poligono :lados :tam\n  repita :lados [pf :tam gd 360 / __]\nfim\npoligono 3 100'],
- ['Depois de cada pétala, a tartaruga precisa girar antes de desenhar a próxima.',
+ ['Depois de cada pétala, {a} {t} precisa girar antes de desenhar a próxima.',
   'As 12 pétalas dividem a volta inteira. Quanto vale cada giro? 360 / 12.',
   'Complete o espaço:|repita 12 [petala gd __]'],
  ['`cont` vale 1 na primeira volta, 2 na segunda, 3 na terceira… `pf cont` anda 1, depois 2, depois 3.',
@@ -1093,13 +1139,13 @@ CH.forEach((c,i)=>{c.dicas=DICAS_CH[i]});
 /* ============ Guia: um exemplo por conceito + um desafio curto ============ */
 const LESSONS=[
  {conceito:'Andar e girar',cmds:['pf','pt','gd','ge'],
-  texto:'<code>pf</code> e <code>pt</code> movem a tartaruga para frente e para trás. <code>gd</code> e <code>ge</code> giram no lugar, em graus. Girar não desenha nada: só muda a direção.',
+  texto:'<code>pf</code> e <code>pt</code> movem {a} {t} para frente e para trás. <code>gd</code> e <code>ge</code> giram no lugar, em graus. Girar não desenha nada: só muda a direção.',
   exemplo:'pf 100\ngd 90\npf 50',
   desafio:{titulo:'Letra T',missao:'Desenhe a letra T: uma haste de 120 e, no alto, uma barra de 80 centrada na haste.',
    alvo:'pf 120 gd 90 pf 40 pt 80',
    dicas:['Comece pela haste: suba 120.','No alto, vire para a direita e ande metade da barra (40).','Para fazer a outra metade sem virar, use `pt`:|pf 120\ngd 90\npf 40\npt __']}},
  {conceito:'Caneta e cores',cmds:['un','ul','cor','esp'],
-  texto:'<code>un</code> levanta a caneta (a tartaruga anda sem riscar) e <code>ul</code> abaixa de novo. <code>cor</code> troca a cor por nome ou por número de 0 a 360, e <code>esp</code> muda a espessura.',
+  texto:'<code>un</code> levanta a caneta ({a} {t} anda sem riscar) e <code>ul</code> abaixa de novo. <code>cor</code> troca a cor por nome ou por número de 0 a 360, e <code>esp</code> muda a espessura.',
   exemplo:'esp 4\ncor "vermelho\npf 40\nun pf 20 ul\ncor "azul\npf 40',
   desafio:{titulo:'Sinal de igual',missao:'Desenhe um sinal de igual: dois traços deitados de 100, um 40 abaixo do outro.',
    alvo:'gd 90 pf 100 un gd 90 pf 40 gd 90 ul pf 100',
@@ -1117,7 +1163,7 @@ const LESSONS=[
    alvo:'repita 5 [pf cont * 10 gd 90 pf 20 ge 90]',
    dicas:['A largura é sempre 20. Só a altura muda de uma volta para outra.','Na volta 1 a altura é 10, na volta 2 é 20… ou seja, `cont` vezes 10.','Complete o espaço:|repita 5 [pf cont * __ gd 90 pf 20 ge 90]']}},
  {conceito:'Procedimentos',cmds:['aprenda','fim',':parâmetro'],
-  texto:'<code>aprenda</code> ensina uma palavra nova à tartaruga. O que vem depois do nome, como <code>:lado</code>, é um parâmetro: um valor que muda a cada uso.',
+  texto:'<code>aprenda</code> ensina uma palavra nova {à} {t}. O que vem depois do nome, como <code>:lado</code>, é um parâmetro: um valor que muda a cada uso.',
   exemplo:'aprenda triangulo :lado\n  repita 3 [pf :lado gd 120]\nfim\n\ntriangulo 60\ntriangulo 120',
   desafio:{titulo:'Quadrados aninhados',missao:'Crie <code>quadrado :lado</code> e desenhe três quadrados de 40, 80 e 120, todos partindo do mesmo canto.',
    alvo:'aprenda quadrado :lado\n repita 4 [pf :lado gd 90]\nfim\nquadrado 40 quadrado 80 quadrado 120',
@@ -1127,9 +1173,9 @@ const LESSONS=[
   exemplo:'repita 8 [\n  sesenão cont <= 4 [cor "azul] [cor "laranja]\n  pf 60 gd 45\n]',
   desafio:{titulo:'Pirâmide',missao:'Com um único <code>repita 6</code> e <code>sesenão</code>, desenhe 3 degraus subindo e 3 descendo, todos de 30.',
    alvo:'repita 6 [sesenão cont <= 3 [pf 30 gd 90 pf 30 ge 90] [gd 90 pf 30 gd 90 pf 30 ge 180]]',
-   dicas:['Nas voltas 1, 2 e 3 a tartaruga sobe. Nas voltas 4, 5 e 6, desce.','A estrutura é `sesenão cont <= 3 [sobe um degrau] [desce um degrau]`.','O degrau que desce termina olhando para cima de novo:|repita 6 [sesenão cont <= 3\n  [pf 30 gd 90 pf 30 ge 90]\n  [gd 90 pf 30 gd 90 pf 30 ge ___]]']}},
+   dicas:['Nas voltas 1, 2 e 3 {a} {t} sobe. Nas voltas 4, 5 e 6, desce.','A estrutura é `sesenão cont <= 3 [sobe um degrau] [desce um degrau]`.','O degrau que desce termina olhando para cima de novo:|repita 6 [sesenão cont <= 3\n  [pf 30 gd 90 pf 30 ge 90]\n  [gd 90 pf 30 gd 90 pf 30 ge ___]]']}},
  {conceito:'Acaso',cmds:['aleatorio','centro'],
-  texto:'<code>aleatorio n</code> sorteia um número inteiro de 0 a n − 1. Cada execução gera um desenho diferente. <code>centro</code> leva a tartaruga de volta ao meio sem riscar.',
+  texto:'<code>aleatorio n</code> sorteia um número inteiro de 0 a n − 1. Cada execução gera um desenho diferente. <code>centro</code> leva {a} {t} de volta ao meio sem riscar.',
   exemplo:'repita 40 [pf aleatorio 30 gd aleatorio 360]',
   desafio:{titulo:'Céu estrelado',missao:'Desenhe 12 estrelas pequenas em lugares sorteados. Não há alvo: cada céu sai diferente.',
    alvo:null,
@@ -1141,7 +1187,7 @@ const LESSONS=[
    alvo:'aprenda degraus :n\n se :n = 0 [pare]\n pf 30 gd 90 pf 30 ge 90\n degraus :n - 1\nfim\ndegraus 5',
    dicas:['Um degrau é `pf 30 gd 90 pf 30 ge 90`.','Depois de desenhar um degrau, chame `degraus` com um a menos: `degraus :n - 1`.','A condição de parada vem no começo:|aprenda degraus :n\n  se :n = 0 [pare]\n  ; um degrau aqui\n  degraus :n - 1\nfim\ndegraus 5']}},
  {conceito:'Cor e forma',cmds:['pinte','carimbe'],
-  texto:'<code>pinte "cor [ … ]</code> preenche a forma que a tartaruga percorre dentro do bloco. <code>carimbe "forma tamanho</code> deixa uma figura onde a tartaruga está: estrela, coração, flor, casa, círculo, quadrado ou triângulo.',
+  texto:'<code>pinte "cor [ … ]</code> preenche a forma que {a} {t} percorre dentro do bloco. <code>carimbe "forma tamanho</code> deixa uma figura onde {a} {t} está: estrela, coração, flor, casa, círculo, quadrado ou triângulo.',
   exemplo:'pinte "amarelo [repita 5 [pf 100 gd 144]]\nun pf 150 ul\ncor "vermelho\ncarimbe "coração 40',
   desafio:{titulo:'Casa colorida',missao:'Desenhe uma casa: parede quadrada de 100 pintada de azul e, em cima dela, um telhado triangular de 100 pintado de vermelho.',
    alvo:'pinte "azul [repita 4 [pf 100 gd 90]]\npf 100 gd 30\npinte "vermelho [repita 3 [pf 100 gd 120]]',
@@ -1335,6 +1381,18 @@ let pov=false;
 const $=id=>document.getElementById(id);
 const statusEl=$('status');
 const cvB=$('cvBase'),cvT=$('cvTurtle'),stage=$('stage');
+/* Nome do personagem em todo o ambiente: {t} nome, {T} Nome, {a} a/o, {da} da/do, {ela} ela/ele... */
+const GEN={tartaruga:'f',joaninha:'f',foguete:'m',lapis:'m',robo:'m',peixe:'m'};
+function fill(s){
+  if(s==null||String(s).indexOf('{')<0)return s;
+  const f=GEN[charName]==='f',N=CHARS[charName].nome,n=N.toLowerCase();
+  const M={t:n,T:N,a:f?'a':'o',A:f?'A':'O',da:f?'da':'do',na:f?'na':'no','à':f?'à':'ao',pela:f?'pela':'pelo',ela:f?'ela':'ele',dela:f?'dela':'dele',uma:f?'uma':'um',Criativa:f?'Criativa':'Criativo'};
+  return String(s).replace(/\{(t|T|a|A|da|na|à|pela|ela|dela|uma|Criativa)\}/g,(m,k)=>M[k]);
+}
+function applyNames(){
+  document.querySelectorAll('.tt').forEach(el=>{if(el._tpl==null)el._tpl=el.innerHTML;el.innerHTML=fill(el._tpl)});
+  document.title=fill('{T} {Criativa}');
+}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
 function draftKey(){return view==='estudio'?'studio':view==='treino'?'t'+tIdx:'c'+chIdx}
@@ -1456,7 +1514,7 @@ function finishAnim(){
 function animate(onDone,step){
   cancelAnimationFrame(anim);anim=null;
   const t0=performance.now();A={i:0,f:0,last:t0,el:0,onDone,paused:!!step,stopAt:step?1:Infinity};
-  if(pov&&cur.ops.length>6000){pov=false;syncPov();setStatus('Desenho grande demais para a visão da tartaruga; voltei para a visão normal.')}
+  if(pov&&cur.ops.length>6000){pov=false;syncPov();setStatus('Desenho grande demais para a visão {da} {t}; voltei para a visão normal.')}
   redrawBase();drawTurtle();
   if(!step&&!cur.hasWait&&(!cur.ops.length||speed()===Infinity)){finishAnim();return}
   setRunLabel(true);loop();
@@ -1497,7 +1555,8 @@ function compare(user,target){
 }
 
 /* ============ Execução ============ */
-function setStatus(html,kind){statusEl.className='status'+(kind?' '+kind:'');statusEl.innerHTML=html}
+let lastStatus=['Pronto.',''];
+function setStatus(html,kind){lastStatus=[html,kind];statusEl.className='status'+(kind?' '+kind:'');statusEl.innerHTML=fill(html)}
 function execute(opts={}){
   lastSrc=cm.getValue();markErr(null);
   try{cur=run(lastSrc)}
@@ -1533,18 +1592,23 @@ $('btnPause').onclick=()=>{
   if(A.paused){A.paused=false;A.stopAt=Infinity;A.last=performance.now();setRunLabel(true);loop()}
   else{A.paused=true;A.stopAt=A.i+1;setRunLabel(true)}
 };
-function syncPov(){$('btnPov').setAttribute('aria-pressed',pov?'true':'false');stage.classList.toggle('pov',pov);redrawBase();drawTurtle()}
+function syncPov(){$('btnPov').setAttribute('aria-pressed',pov?'true':'false');$('povTag').hidden=!pov;redrawBase();drawTurtle()}
 $('btnPov').onclick=()=>{pov=!pov;syncPov()};
 $('ghost').onchange=()=>{redrawBase()};
 $('btnFull').onclick=()=>{const el=$('stageWrap');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});else if(el.requestFullscreen)el.requestFullscreen().catch(()=>{})};
 
 /* Personagem */
+function refreshChar(){
+  charPreview($('charBtnCv'),charName,22);charPreview($('asAvatar'),charName,40);charPreview($('logoCv'),charName,34);
+  applyNames();if(view!=='guia'&&view!=='diario')renderMission();if(view==='guia')renderLessons();
+  setStatus(lastStatus[0],lastStatus[1]);asShow();
+}
 function renderCharPicker(){
   const box=$('charList');box.innerHTML='';
   for(const [id,ch] of Object.entries(CHARS)){
     const b=document.createElement('button');b.className='char-opt';b.setAttribute('aria-pressed',id===charName?'true':'false');
     b.innerHTML=`<canvas aria-hidden="true"></canvas><span>${esc(ch.nome)}</span>`;
-    b.onclick=()=>{charName=id;store.set('char',id);renderCharPicker();drawTurtle();charPreview($('charBtnCv'),charName,22);charPreview($('asAvatar'),charName,40);$('charPop').hidden=true;$('btnChar').setAttribute('aria-expanded','false')};
+    b.onclick=()=>{charName=id;store.set('char',id);renderCharPicker();drawTurtle();refreshChar();$('charPop').hidden=true;$('btnChar').setAttribute('aria-expanded','false')};
     box.appendChild(b);charPreview(b.querySelector('canvas'),id,40);
   }
 }
@@ -1565,18 +1629,19 @@ function renderMission(){
   const m=$('mission');
   if(view==='estudio'){
     m.innerHTML=`<span class="eyebrow">Estúdio livre</span><h2>O que você quer desenhar?</h2>
-    <p>Aqui não há alvo nem resposta certa. Combine procedimentos, cores, repetições e recursão para criar uma obra sua, ou abra o link da obra de um colega e faça um remix.</p>`;
+    <p>Aqui não há alvo nem resposta certa. Combine procedimentos, cores, repetições, carimbos e animação para criar uma obra sua, ou abra o link da obra de um colega e faça um remix. Sem ideia? Peça uma ao assistente.</p>`;
     return;
   }
   if(view==='treino'){
     const l=LESSONS[tIdx],d=l.desafio;
-    m.innerHTML=`<button class="backlink" id="backGuide">← Voltar ao Guia</button><span class="eyebrow">Desafio do Guia · ${esc(l.conceito)}</span><h2>${esc(d.titulo)}</h2>
-    <dl><dt>Missão</dt><dd>${d.missao}</dd><dt>Como</dt><dd>O editor começou com o exemplo do Guia. Execute, observe e modifique o código até ${d.alvo?'cobrir o alvo em azul claro':'gostar do resultado'}.</dd></dl>`;
+    m.innerHTML=fill(`<button class="backlink" id="backGuide">← Voltar ao Guia</button><span class="eyebrow">Desafio do Guia · ${esc(l.conceito)}</span><h2>${esc(d.titulo)}</h2>
+    <dl><dt>Missão</dt><dd>${d.missao}</dd></dl><details><summary>Como fazer</summary><p>O editor começou com o exemplo do Guia. Execute, observe e modifique o código até ${d.alvo?'cobrir o alvo em azul claro':'gostar do resultado'}.</p></details>`);
     $('backGuide').onclick=()=>setView('guia');return;
   }
   const c=CH[chIdx];
-  m.innerHTML=`<span class="eyebrow">Desafio ${chIdx+1} de ${CH.length} · ${esc(c.conceito)}</span><h2>${esc(c.titulo)}</h2>
-  <dl><dt>Missão</dt><dd>${c.missao}</dd><dt>Pense</dt><dd>${c.pense}</dd><dt>Vá além</dt><dd>${c.alem}</dd></dl>`;
+  m.innerHTML=fill(`<span class="eyebrow">Desafio ${chIdx+1} de ${CH.length} · ${esc(c.conceito)}</span><h2>${esc(c.titulo)}</h2>
+  <dl><dt>Missão</dt><dd>${c.missao}</dd></dl>
+  <details><summary>Pense e vá além</summary><dl><dt>Pense</dt><dd>${c.pense}</dd><dt>Vá além</dt><dd>${c.alem}</dd></dl></details>`);
 }
 function loadBench(code){
   const isCh=view==='desafios';
@@ -1585,13 +1650,14 @@ function loadBench(code){
   setCode(code??drafts[draftKey()]??starter());
   if(code!=null){drafts[draftKey()]=code;store.set('drafts',drafts)}
   markErr(null);asReset();execute({auto:true});
-  setTimeout(()=>cm.refresh(),0);
+  setTimeout(()=>{cm.refresh();resize()},0);
 }
 function setView(v){
   view=v;
   const tab=v==='treino'?'guia':v;
   document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.view===tab?'true':'false'));
   const bench=v==='desafios'||v==='estudio'||v==='treino';
+  document.body.classList.toggle('app',bench);
   $('view-bench').hidden=!bench;$('view-guia').hidden=v!=='guia';$('view-diario').hidden=v!=='diario';
   if(!bench){clearTimeout(AS.timer);if(A){cancelAnimationFrame(anim);anim=null;A=null;markExec(null);setRunLabel(false)}}
   if(v==='guia')renderLessons();
@@ -1609,11 +1675,11 @@ function renderLessons(){
     const art=document.createElement('article');art.className='lesson card';
     art.innerHTML=`<span class="eyebrow">${i+1} · ${esc(l.conceito)}</span>
       <div class="chips">${l.cmds.map(c=>`<span class="chip">${esc(c)}</span>`).join('')}</div>
-      <p>${l.texto}</p>
+      <p>${fill(l.texto)}</p>
       <div class="ex"><pre aria-label="Exemplo">${esc(l.exemplo)}</pre><canvas role="img" aria-label="Resultado do exemplo"></canvas></div>
       <div class="mini">
         <span class="eyebrow">Agora é com você · ${esc(d.titulo)}</span>
-        <p>${d.missao}</p>
+        <p>${fill(d.missao)}</p>
         <div class="mini-row"><button class="btn small primary">Experimentar e encarar o desafio</button>${ok?'<span class="done-tag">Concluído</span>':''}</div>
       </div>`;
     art.querySelector('button').onclick=()=>openLesson(i);
@@ -1626,13 +1692,13 @@ function openLesson(i){tIdx=i;setView('treino');window.scrollTo({top:0,behavior:
 const AS={lv:{},fails:{},timer:null,lint:null,lintShown:false};
 const TAGS={erro:'Erro',aviso:'Atenção',dica:'Dica',ok:'Certo',ideia:'Ideia',info:'Assistente'};
 let asMsgs=[];
-function asShow(){$('asList').innerHTML=asMsgs.map(m=>`<div class="msg ${m.k}"><span class="tag">${TAGS[m.k]}</span><div>${m.h}</div></div>`).join('')}
+function asShow(){if($('paneHelp').classList.contains('collapsed'))$('paneHelp').classList.add('has-new');$('asList').innerHTML=asMsgs.map(m=>`<div class="msg ${m.k}"><span class="tag">${TAGS[m.k]}</span><div>${fill(m.h)}</div></div>`).join('')}
 function asSet(list){asMsgs=list;asShow()}
 function asPush(m){asMsgs=[m,...asMsgs].slice(0,3);asShow()}
 function fmtHint(s){
   const [t,code]=s.split('|');
   const txt=esc(t).replace(/`([^`]+)`/g,'<code>$1</code>');
-  return txt+(code?`<pre>${esc(code)}</pre>`:'');
+  return fill(txt)+(code?`<pre>${esc(code)}</pre>`:'');
 }
 function asHead(){
   const m=curMission(),b=$('btnHint');
@@ -1646,7 +1712,7 @@ function asNudge(){
   if(!curMission()||missionDone())return;
   AS.timer=setTimeout(()=>{
     if(!curMission()||missionDone())return;
-    asPush({k:'info',h:'Travou? Uma estratégia: apague (ou comente com <code>;</code>) a parte final, execute só o começo e veja onde a tartaruga para. Se quiser, peça uma dica.'});
+    asPush({k:'info',h:'Travou? Uma estratégia: apague (ou comente com <code>;</code>) a parte final, execute só o começo e veja onde {a} {t} para. Se quiser, peça uma dica.'});
   },120000);
 }
 function asReset(){
@@ -1689,7 +1755,7 @@ function explain(e,src){
   if(/só funciona dentro de um repita/.test(m))return `${L}<code>cont</code> conta as voltas de um <code>repita</code>; fora dele não tem valor.`;
   if(/chamou a si mesmo/.test(m))return `${L}o procedimento não para de chamar a si mesmo. Coloque no começo uma condição de parada, como <code>se :t &lt; 8 [pare]</code>, e confira se o valor muda a cada chamada até chegar nela.`;
   if(/instruções demais/.test(m))return `${L}o programa não termina. Procure um <code>repita</code> com número enorme ou uma recursão sem parada.`;
-  if(/não é um número válido/.test(m))return `${L}esse número está escrito de um jeito que a tartaruga não entende. Para decimais, use ponto: <code>0.7</code>.`;
+  if(/não é um número válido/.test(m))return `${L}esse número está escrito de um jeito que {a} {t} não entende. Para decimais, use ponto: <code>0.7</code>.`;
   if(/símbolo ","/.test(m))return `${L}a vírgula não faz parte da linguagem. Para decimais use ponto (<code>0.7</code>); comandos se separam só com espaços.`;
   if(/já é uma palavra da linguagem/.test(m))return `${L}esse nome já é um comando. Escolha outro nome para o procedimento.`;
   if(/sem um "aprenda"/.test(m))return `${L}há um <code>fim</code> sem <code>aprenda</code>. Confira se o <code>aprenda</code> está escrito certo.`;
@@ -1728,7 +1794,7 @@ function diagnose(user,target,r){
   if(r.rec>=.92&&r.prec<.85)return[{k:'dica',h:'O alvo está todo coberto, mas há traços a mais. Procure um <code>pf</code> ou uma repetição que passou do ponto.'}];
   const sz=Math.max(bu.w,bu.h)/Math.max(bt.w,bt.h,1);
   if(sz>1.15||sz<.85)return[{k:'dica',h:`Seu desenho está ${sz>1?'maior':'menor'} que o alvo (cerca de ${Math.round(sz*100)}% do tamanho). Confira os números dos <code>pf</code>.`}];
-  if(Math.hypot(bu.cx-bt.cx,bu.cy-bt.cy)>25&&r.score<.6)return[{k:'dica',h:'O tamanho parece certo, mas o desenho está em outro lugar. A tartaruga começa no centro, olhando para cima. Para se deslocar sem riscar, use <code>un</code> e depois <code>ul</code>.'}];
+  if(Math.hypot(bu.cx-bt.cx,bu.cy-bt.cy)>25&&r.score<.6)return[{k:'dica',h:'O tamanho parece certo, mas o desenho está em outro lugar. {A} {t} começa no centro, olhando para cima. Para se deslocar sem riscar, use <code>un</code> e depois <code>ul</code>.'}];
   if(bu.n!==bt.n)return[{k:'dica',h:`O alvo tem ${bt.n} traços e o seu tem ${bu.n}. Confira as repetições e os ângulos dos giros.`}];
   return[{k:'dica',h:'Mesma quantidade de traços que o alvo, mas em direções diferentes. Confira os ângulos de <code>gd</code> e <code>ge</code>.'}];
 }
@@ -1753,14 +1819,14 @@ function asAfterRun(r,ok,first){
   if(AS.fails[key]>=3&&(AS.lv[key]||0)<(m.dicas||[]).length)msgs.push({k:'info',h:'Já foram algumas tentativas. Se quiser, clique em <b>Pedir dica</b>.'});
   const lastHint=asMsgs.find(x=>x.k==='dica'&&/^<b>Dica/.test(x.h));
   asSet(lastHint?[...msgs,lastHint]:msgs);asNudge();
-  if(AS.fails[key]===3)askDiary('O que você esperava que a tartaruga fizesse, e o que ela fez de diferente?');
+  if(AS.fails[key]===3)askDiary('O que você esperava que {a} {t} fizesse, e o que {ela} fez de diferente?');
 }
 
 /* ============ Diário de bordo ============ */
 let diary=store.get('diario',[]);
 function askDiary(q){
   const box=$('asDiary');box.hidden=false;
-  $('diaryQ').textContent=q;$('diaryA').value='';box.dataset.q=q;
+  setHelpOpen(true);q=fill(q);$('diaryQ').textContent=q;$('diaryA').value='';box.dataset.q=q;
 }
 $('btnNote').onclick=()=>askDiary('O que você está tentando fazer agora? O que já descobriu?');
 $('diaryCancel').onclick=()=>{$('asDiary').hidden=true};
@@ -1772,7 +1838,7 @@ $('diarySave').onclick=()=>{
 };
 function fmtDate(iso){try{return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch{return iso}}
 function diaryText(){
-  return 'DIÁRIO DE BORDO · TARTARUGA CRIATIVA\n\n'+diary.map(d=>`${fmtDate(d.quando)} · ${d.missao}\nPergunta: ${d.pergunta}\nResposta: ${d.resposta}\nCódigo:\n${d.codigo}\n`).join('\n----------------------------------------\n\n');
+  return 'DIÁRIO DE BORDO · '+fill('{T} {Criativa}').toUpperCase()+'\n\n'+diary.map(d=>`${fmtDate(d.quando)} · ${d.missao}\nPergunta: ${d.pergunta}\nResposta: ${d.resposta}\nCódigo:\n${d.codigo}\n`).join('\n----------------------------------------\n\n');
 }
 function renderDiary(){
   const list=$('diaryList');list.innerHTML='';
@@ -1848,8 +1914,20 @@ $('onbGo').onclick=()=>{$('onb').hidden=true;store.set('onb',1)};
 $('onbAgain').onclick=e=>{e.preventDefault();showOnboarding()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('onb').hidden)$('onbGo').click()});
 
+/* ============ Posição do assistente e do status conforme a tela ============ */
+const mqWide=matchMedia('(min-width:1200px) and (min-height:600px)'),mqPhone=matchMedia('(max-width:899px)');
+function setHelpOpen(open){const h=$('paneHelp');h.classList.toggle('collapsed',!open);if(open)h.classList.remove('has-new');$('helpToggle').textContent=open?'▾':'▴';$('helpToggle').setAttribute('aria-label',open?'Recolher o assistente':'Abrir o assistente');$('helpToggle').setAttribute('aria-expanded',open?'true':'false')}
+$('helpToggle').onclick=()=>setHelpOpen($('paneHelp').classList.contains('collapsed'));
+function placeStatus(){
+  const st=$('status');
+  if(mqWide.matches){$('paneHelp').prepend(st);setHelpOpen(true)}else $('paneStage').appendChild(st);
+  resize();
+}
+mqWide.addEventListener('change',placeStatus);
+placeStatus();if(mqPhone.matches)setHelpOpen(false);
+
 /* ============ Início ============ */
-renderCharPicker();charPreview($('charBtnCv'),charName,22);charPreview($('asAvatar'),charName,40);renderWords();
+renderCharPicker();refreshChar();renderWords();
 if(!fromHash())setView('desafios');
 if(!store.get('onb',0))showOnboarding();
 
